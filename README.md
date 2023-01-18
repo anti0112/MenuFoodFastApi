@@ -13,6 +13,9 @@ virtualenv venv
 pip install -r requirements.txt
 ```
 #### 2. Создать  файл `.env` и записать в него переменные окружения из `.env.example`
+```
+cp .env.example .env
+```
 #### 3. Поднимаем контейнер докер с базой данных
 ```
 docker compose up -d
