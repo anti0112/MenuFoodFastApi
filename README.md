@@ -16,7 +16,7 @@ cp .env.example .env
 ```
 docker compose up -d
 ```
-
+#### Если контейнеры выдали ошибку выполните команду `docker compose up -d` повторно
 ___
 
 
