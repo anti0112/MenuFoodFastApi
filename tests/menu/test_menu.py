@@ -4,7 +4,7 @@ from starlette.testclient import TestClient
 class TestMenu:
     base_url = '/api/v1/menus/'
 
-    def test_empty_menus(self, test_client: TestClient, test_db):
+    def test_get_menus(self, test_client: TestClient, test_db):
         response = test_client.get(self.base_url)
         assert response.status_code == 200
         expected_answer = []
@@ -28,7 +28,7 @@ class TestMenu:
         assert expected_answer["description"] == response_dict["description"]
         assert isinstance(response_dict["id"], str)
 
-    def test_detailed_menu(self, test_client: TestClient, test_db):
+    def test_detail_menu(self, test_client: TestClient, test_db):
         new_menu = {
             "title": "My menu 1",
             "description": "My menu description 1"
