@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from menu.models import Dish, Submenu
 from menu.schemas.dish_schema import DishCreate, DishOut, DishUpdate
-
+from typing import List
 
 class DishDAO:
     def __init__(self, db: Session):
@@ -14,7 +14,7 @@ class DishDAO:
             return None
         return dish
 
-    def get_all(self, submenu_id: int) -> list[DishOut]:
+    def get_all(self, submenu_id: int) -> List[DishOut]:
         submenu = self.db.query(Submenu).filter(Submenu.id == submenu_id).first()
         if submenu is None:
             return None

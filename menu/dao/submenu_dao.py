@@ -3,7 +3,7 @@ from menu.models import Submenu, Menu
 
 from menu.schemas.submenu_schema import (
     SubmenuCreate, SubmenuOut, SubmenuUpdate)
-
+from typing import List
 
 class SubmenuDAO:
     def __init__(self, db: Session):
@@ -16,7 +16,7 @@ class SubmenuDAO:
             return None
         return submenu
 
-    def get_all(self, menu_id: int) -> list[SubmenuOut]:
+    def get_all(self, menu_id: int) -> List[SubmenuOut]:
         submenus = self.db.query(Menu).filter(Menu.id == menu_id).first()
         return submenus
 

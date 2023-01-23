@@ -4,6 +4,7 @@ from menu.models import Dish
 from fastapi import HTTPException
 from menu.services.menu_services import MenuService
 from menu.services.submenu_services import SubmenuService
+from typing import List
 
 
 class DishService:
@@ -18,7 +19,7 @@ class DishService:
             raise HTTPException(status_code=404, detail="dish not found")
         return self.schema_dish_out(dish)
 
-    def get_all_dishes(self, submenu_id: int) -> list[DishOut]:
+    def get_all_dishes(self, submenu_id: int) -> List[DishOut]:
         dishes = self.dao.get_all(submenu_id)
         if dishes is None:
             return []
@@ -52,11 +53,11 @@ class DishService:
             id=str(dish.id),
             title=dish.title,
             description=dish.description,
-            price=dish.price)
+            price=str(dish.price))
 
-    def schema_dishes_out(self, dishes: list[Dish]) -> list[DishOut]:
+    def schema_dishes_out(self, dishes: List[Dish]) -> List[DishOut]:
         return [DishOut(
             id=str(dish.id),
             title=dish.title,
             description=dish.description,
-            price=dish.price) for dish in dishes]
+            price=str(dish.price)) for dish in dishes]

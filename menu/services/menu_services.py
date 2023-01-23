@@ -2,7 +2,7 @@ from menu.dao.menu_dao import MenuDAO
 from menu.schemas.menu_schema import MenuOut, MenuCreate, MenuUpdate
 from menu.models import Menu
 from fastapi import HTTPException
-
+from typing import List
 
 class MenuService:
     def __init__(self, dao: MenuDAO):
@@ -14,7 +14,7 @@ class MenuService:
             raise HTTPException(status_code=404, detail="menu not found")
         return self.schema_menu_out(menu)
 
-    def get_all_menus(self) -> list[MenuOut]:
+    def get_all_menus(self) -> List[MenuOut]:
         menus = self.dao.get_all()
         return self.schema_menus_out(menus)
 
@@ -44,7 +44,7 @@ class MenuService:
             dishes_count=sum(len(submenu.dishes) for submenu in menu.submenus)
         )
 
-    def schema_menus_out(self, menus: list[Menu]) -> list[MenuOut]:
+    def schema_menus_out(self, menus: List[Menu]) -> List[MenuOut]:
         return [MenuOut(
             id=str(menu.id),
             title=menu.title,

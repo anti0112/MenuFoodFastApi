@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from menu.services.menu_services import MenuService
 from menu.schemas.menu_schema import MenuOut, MenuCreate, MenuUpdate
 from menu.implemented import get_service_menu
+from typing import List
 
 
 router = APIRouter()
@@ -19,7 +20,7 @@ def read_menu(menu_id: int,
     return menu_service.get_menu(menu_id)
 
 
-@router.get("/menus/", response_model=list[MenuOut])
+@router.get("/menus/", response_model=List[MenuOut])
 def read_menus(menu_service: MenuService = Depends(get_service_menu)):
     return menu_service.get_all_menus()
 

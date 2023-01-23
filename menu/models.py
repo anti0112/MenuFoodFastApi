@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.orm import relationship
-from core.db import Base
+from sqlalchemy.ext.declarative import declarative_base
 
+Base = declarative_base()
 
 class Dish(Base):
     __tablename__ = 'dishes'

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from menu.services.dish_services import DishService
 from menu.schemas.dish_schema import DishOut, DishCreate, DishUpdate
 from menu.implemented import get_service_dish
+from typing import List
 
 
 router = APIRouter()
@@ -13,7 +14,7 @@ def create_dish(dish: DishCreate, menu_id: int, submenu_id: int,
     return dish_service.create_dish(dish, menu_id, submenu_id)
 
 
-@router.get('/menus/{menu_id}/submenus/{submenu_id}/dishes/', response_model=list[DishOut])
+@router.get('/menus/{menu_id}/submenus/{submenu_id}/dishes/', response_model=List[DishOut])
 def get_all_dish(submenu_id: int,
                  dish_service: DishService = Depends(get_service_dish)):
     return dish_service.get_all_dishes(submenu_id)

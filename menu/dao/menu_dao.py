@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from menu.models import Menu
 from menu.schemas.menu_schema import MenuCreate, MenuOut, MenuUpdate
-
+from typing import List
 
 class MenuDAO:
     def __init__(self, db: Session):
@@ -13,7 +13,7 @@ class MenuDAO:
             return None
         return menu
 
-    def get_all(self) -> list[MenuOut]:
+    def get_all(self) -> List[MenuOut]:
         menus = self.db.query(Menu).all()
         return menus
 

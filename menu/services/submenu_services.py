@@ -4,6 +4,7 @@ from menu.schemas.submenu_schema import (
 from menu.models import Submenu
 from fastapi import HTTPException
 from menu.services.menu_services import MenuService
+from typing import List
 
 
 class SubmenuService:
@@ -17,7 +18,7 @@ class SubmenuService:
             raise HTTPException(status_code=404, detail="submenu not found")
         return self.schema_submenu_out(submenu)
 
-    def get_all_submenus(self, menu_id: int) -> list[SubmenuOut]:
+    def get_all_submenus(self, menu_id: int) -> List[SubmenuOut]:
         menus = self.dao.get_all(menu_id)
         menus = menus.submenus
         return self.schema_submenus_out(menus)
@@ -46,7 +47,7 @@ class SubmenuService:
             description=submenu.description,
             dishes_count=len(submenu.dishes))
 
-    def schema_submenus_out(self, submenus: list[Submenu]) -> list[SubmenuOut]:
+    def schema_submenus_out(self, submenus: List[Submenu]) -> List[SubmenuOut]:
         return [SubmenuOut(
             id=submenu.id,
             title=submenu.title,
