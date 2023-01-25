@@ -14,7 +14,7 @@ cp .env.example .env
 ```
 #### 2. Для запуска напишите эту команду
 ```
-docker compose up -d
+docker compose -f docker-compose.yml -f docker-compose.test.yml up -d
 ```
 #### Если контейнеры выдали ошибку выполните команду `docker compose up -d` повторно
 ___

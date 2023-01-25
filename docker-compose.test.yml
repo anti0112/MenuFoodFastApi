@@ -1,0 +1,9 @@
+version: '3.9'
+services:
+  test:
+    build: .
+    depends_on:
+      pg:
+        condition: service_healthy
+    command: >
+      sh -c "export SQLALCHEMY_SILENCE_UBER_WARNING=1 && pytest -vv"

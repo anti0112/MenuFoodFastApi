@@ -1,9 +1,10 @@
-version: '3.8'
+version: '3.9'
 services:
   api:
     build: .
     depends_on:
-      - pg
+      pg:
+        condition: service_healthy
     ports:
       - 8000:8000
     command: >
@@ -28,10 +29,4 @@ services:
       timeout: 5s
       retries: 5 
   
-  test:
-    build: .
-    depends_on:
-      - pg
-      - api
-    command: >
-      sh -c "export SQLALCHEMY_SILENCE_UBER_WARNING=1 && pytest -vv"
+
