@@ -9,6 +9,24 @@ services:
         condition: service_healthy
     command: >
       sh -c "export SQLALCHEMY_SILENCE_UBER_WARNING=1 && pytest -vv"
-
+      
+  pg:
+    image: postgres:15.1-alpine
+    networks:
+      - network_menu
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    restart: always
+    ports:
+      - 5433:5432
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5 
 networks:
   network_menu:
