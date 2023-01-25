@@ -2,8 +2,13 @@ version: '3.9'
 services:
   test:
     build: .
+    networks:
+      - network_menu
     depends_on:
       pg:
         condition: service_healthy
     command: >
       sh -c "export SQLALCHEMY_SILENCE_UBER_WARNING=1 && pytest -vv"
+
+networks:
+  network_menu:
