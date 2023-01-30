@@ -5,12 +5,12 @@ services:
     networks:
       - network_menu
     depends_on:
-      pg:
+      pg-test:
         condition: service_healthy
     command: >
       sh -c "export SQLALCHEMY_SILENCE_UBER_WARNING=1 && pytest -vv"
-      
-  pg:
+
+  pg-test:
     image: postgres:15.1-alpine
     networks:
       - network_menu
@@ -21,12 +21,23 @@ services:
     restart: always
     ports:
       - 5433:5432
-    volumes:
-      - ./pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U test"]
       interval: 5s
       timeout: 5s
-      retries: 5 
+      retries: 5
+
+  redis-test:
+    image: redis:latest
+    expose:
+      - 6379
+    command: redis-server
+    networks:
+      - network_menu
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 networks:
   network_menu:

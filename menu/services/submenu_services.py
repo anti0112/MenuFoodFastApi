@@ -1,55 +1,90 @@
-from menu.dao.submenu_dao import SubmenuDAO
-from menu.schemas.submenu_schema import (
-    SubmenuOut, SubmenuCreate, SubmenuUpdate)
-from menu.models import Submenu
 from fastapi import HTTPException
-from menu.services.menu_services import MenuService
-from typing import List
+
+from menu.db.models import Submenu
+from menu.services import ServiceMixin
 
 
-class SubmenuService:
-    def __init__(self, dao: SubmenuDAO, menu_service: MenuService):
-        self.dao = dao
-        self.menu_service = menu_service
+class SubmenuService(ServiceMixin):
+    async def get_detail(self, submenu_id: int):
+        cached_submenu = await self.redis_cache.get_data(f"submenu:{submenu_id}")
 
-    def get_submenu(self, id: int) -> SubmenuOut:
-        submenu = self.dao.get(id)
-        if submenu is None:
+        if cached_submenu:
+            return cached_submenu
+
+        submenu = await self.dao.submenu_info(submenu_id=submenu_id)
+
+        if not submenu:
             raise HTTPException(status_code=404, detail="submenu not found")
-        return self.schema_submenu_out(submenu)
 
-    def get_all_submenus(self, menu_id: int) -> List[SubmenuOut]:
-        menus = self.dao.get_all(menu_id)
-        menus = menus.submenus
-        return self.schema_submenus_out(menus)
+        response_data = self.calculate_count_dishes(submenu)
+        await self.redis_cache.save(f"submenu:{submenu_id}", response_data)
 
-    def create_submenu(self, submenu: SubmenuCreate, menu_id: int) -> SubmenuOut:
-        db_submenu = self.dao.create(submenu, menu_id)
-        return self.schema_submenu_out(db_submenu)
+        return response_data
 
-    def update_submenu(self, id: int, changes: SubmenuUpdate) -> SubmenuOut:
-        db_submenu = self.dao.update(id, changes)
-        if db_submenu is None:
-            raise HTTPException(status_code=404)
-        return self.schema_submenu_out(db_submenu)
+    async def get_list(self, menu_id: int):
+        cached_submenus = await self.redis_cache.get_data(f"submenus:{menu_id}")
 
-    def delete_submenu(self, id: int) -> SubmenuOut:
-        submenu = self.dao.get(id)
-        if submenu is None:
-            raise HTTPException(status_code=404)
-        self.dao.delete(submenu)
-        return {"status": 'true', "message": "The submenu has been deleted"}
+        if cached_submenus:
+            return cached_submenus
 
-    def schema_submenu_out(self, submenu: Submenu) -> SubmenuOut:
-        return SubmenuOut(
-            id=str(submenu.id),
-            title=submenu.title,
-            description=submenu.description,
-            dishes_count=len(submenu.dishes))
+        menu = await self.main_dao.menu.menu_info(menu_id=menu_id)
 
-    def schema_submenus_out(self, submenus: List[Submenu]) -> List[SubmenuOut]:
-        return [SubmenuOut(
-            id=submenu.id,
-            title=submenu.title,
-            description=submenu.description,
-            dishes_count=len(submenu.dishes)) for submenu in submenus]
+        if not menu:
+            raise HTTPException(status_code=404, detail="menu not found")
+
+        submenus = self.calculate_count_dishes_list(menu.sub_menus)
+        await self.redis_cache.save(f"submenus:{menu_id}", submenus)
+
+        return submenus
+
+    async def create(self, menu_id: int, title: str, description: str):
+        submenu = await self.dao.create_submenu(menu_id=menu_id, title=title, desc=description)
+
+        await self.redis_cache.clear()
+
+        return self.calculate_count_dishes(submenu)
+
+    async def update(self, submenu_id: int, **kwargs):
+        submenu = await self.dao.submenu_info(submenu_id=submenu_id)
+
+        if not submenu:
+            raise HTTPException(status_code=404, detail="menu not found")
+
+        submenu = await self.dao.update_submenu(submenu_id, **kwargs)
+
+        updated_submenu = self.calculate_count_dishes(submenu)
+        await self.redis_cache.save(f"submenu:{submenu.id}", updated_submenu)
+        await self.redis_cache.clear(f"submenus:{submenu.menu_id}")
+
+        return updated_submenu
+
+    async def delete(self, submenu_id: int):
+        submenu = await self.dao.submenu_info(submenu_id=submenu_id)
+
+        if not submenu:
+            raise HTTPException(status_code=404, detail="submenu not found")
+
+        await self.dao.delete_submenu(submenu_id=submenu_id)
+        await self.redis_cache.clear()
+
+        return True
+
+    @staticmethod
+    def calculate_count_dishes(submenu: Submenu):
+        dishes_count = len(submenu.dishes)
+
+        submenu.dishes_count = dishes_count
+
+        return submenu
+
+    @staticmethod
+    def calculate_count_dishes_list(submenus: list[Submenu]):
+        result_list = list()
+
+        for submenu in submenus:
+            dishes_count = len(submenu.dishes)
+            submenu.dishes_count = dishes_count
+
+            result_list.append(submenu)
+
+        return result_list

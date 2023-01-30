@@ -1,40 +1,51 @@
-from sqlalchemy.orm import Session
-from menu.models import Dish, Submenu
-from menu.schemas.dish_schema import DishCreate, DishOut, DishUpdate
-from typing import List
+from sqlalchemy import select
 
-class DishDAO:
-    def __init__(self, db: Session):
-        self.db = db
-       
+from menu.db.models import Dish
+from menu.dao import SQLAlchemySession
 
-    def get(self, id: int, submenu_id: int) -> DishOut:
-        dish = self.db.query(Dish).filter(Dish.id == id, Dish.submenu_id == submenu_id).first()
-        if dish is None:
-            return None
+
+class DishDAO(SQLAlchemySession):
+    async def _get_dish(self, dish_id: int) -> Dish | None:
+        dish = await self.session.get(Dish, dish_id)
+
         return dish
 
-    def get_all(self, submenu_id: int) -> List[DishOut]:
-        submenu = self.db.query(Submenu).filter(Submenu.id == submenu_id).first()
-        if submenu is None:
-            return None
-        dishes = submenu.dishes
-        return dishes
+    async def dish_info(self, dish_id: int) -> Dish | None:
+        dish = await self._get_dish(dish_id)
 
-    def create(self, dish: DishCreate, submenu_id: int) -> DishOut:
-        db_dish = Dish(title=dish.title, price=dish.price, description=dish.description,
-                       submenu_id=submenu_id)
-        self.db.add(db_dish)
-        self.db.commit()
-        self.db.refresh(db_dish)
-        return db_dish
+        return dish
 
-    def update(self, id: int, submenu_id: int, dish: DishUpdate) -> DishOut:
-        db_dish = dish.dict()
-        self.db.query(Dish).filter(Dish.id == id, Dish.submenu_id == submenu_id).update(db_dish)
-        self.db.commit()
-        return self.get(id=id, submenu_id=submenu_id)
+    async def get_all_dishes(self) -> list[Dish]:
+        smtp = select(Dish).order_by(Dish.id)
 
-    def delete(self, dish: Dish):
-        self.db.delete(dish)
-        self.db.commit()
+        return (await self.session.scalars(smtp)).all()
+
+    async def create_dish(self, submenu_id: int, title: str, desc: str, price: float):
+        dish = Dish(submenu_id=submenu_id, title=title,
+                    description=desc, price=round(price, 2))
+
+        self.session.add(dish)
+        await self.session.commit()
+        await self.session.refresh(dish)
+
+        return dish
+
+    async def update_dish(self, dish_id: int, **kwargs):
+        dish = await self._get_dish(dish_id)
+
+        for k, v in kwargs.items():
+            if hasattr(dish, k):
+                setattr(dish, k, v)
+
+        await self.session.commit()
+        await self.session.refresh(dish)
+
+        return dish
+
+    async def delete_dish(self, dish_id: int):
+        dish = await self._get_dish(dish_id)
+
+        await self.session.delete(dish)
+        await self.session.commit()
+
+        return True

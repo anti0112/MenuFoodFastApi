@@ -1,40 +1,52 @@
-from sqlalchemy.orm import Session
-from menu.models import Submenu, Menu
+from sqlalchemy import select
 
-from menu.schemas.submenu_schema import (
-    SubmenuCreate, SubmenuOut, SubmenuUpdate)
-from typing import List
+from menu.db.models import Submenu
+from menu.dao import SQLAlchemySession
 
-class SubmenuDAO:
-    def __init__(self, db: Session):
-        self.db = db
 
-    def get(self, submenu_id: int) -> SubmenuOut:
-        submenu = self.db.query(Submenu).filter(
-            Submenu.id == submenu_id).first()
-        if submenu is None:
-            return None
+class SubmenuDAO(SQLAlchemySession):
+    async def _get_submenu(self, submenu_id: int) -> Submenu | None:
+        submenu = await self.session.get(Submenu, submenu_id)
+
         return submenu
 
-    def get_all(self, menu_id: int) -> List[SubmenuOut]:
-        submenus = self.db.query(Menu).filter(Menu.id == menu_id).first()
-        return submenus
+    async def get_all_submenu_for_menu(self, menu_id: int) -> list[Submenu]:
+        smtp = select(Submenu).where(
+            Submenu.menu_id == menu_id).order_by(Submenu.id)
+        submenu = await self.session.scalars(smtp)
 
-    def create(self, menu_id: int, submenu: SubmenuCreate) -> SubmenuOut:
-        db_submenu = Submenu(title=submenu.title,
-                             description=submenu.description,
-                             menu_id=menu_id)
-        self.db.add(db_submenu)
-        self.db.commit()
-        self.db.refresh(db_submenu)
-        return db_submenu
+        return submenu.all()
 
-    def update(self, id: int, submenu: SubmenuUpdate) -> SubmenuOut:
-        db_submenu = submenu.dict()
-        self.db.query(Submenu).filter(Submenu.id == id).update(db_submenu)
-        self.db.commit()
-        return self.get(id)
+    async def submenu_info(self, submenu_id: int) -> Submenu | None:
+        submenu = await self._get_submenu(submenu_id)
 
-    def delete(self, submenu: Submenu):
-        self.db.delete(submenu)
-        self.db.commit()
+        return submenu
+
+    async def create_submenu(self, menu_id: int, title: str, desc: str) -> Submenu:
+        submenu = Submenu(menu_id=menu_id, title=title, description=desc)
+
+        self.session.add(submenu)
+        await self.session.commit()
+        await self.session.refresh(submenu)
+
+        return submenu
+
+    async def update_submenu(self, submenu_id: int, **kwargs):
+        submenu = await self._get_submenu(submenu_id)
+
+        for k, v in kwargs.items():
+            if hasattr(submenu, k):
+                setattr(submenu, k, v)
+
+        await self.session.commit()
+        await self.session.refresh(submenu)
+
+        return submenu
+
+    async def delete_submenu(self, submenu_id: int):
+        submenu = await self._get_submenu(submenu_id)
+
+        await self.session.delete(submenu)
+        await self.session.commit()
+
+        return True

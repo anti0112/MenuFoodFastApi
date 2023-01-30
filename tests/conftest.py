@@ -1,36 +1,46 @@
+import asyncio
+from typing import Generator
 import pytest
-from sqlalchemy_utils import database_exists, create_database
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from starlette.testclient import TestClient
-from starlette.requests import Request
-from menu.models import Base
-from core.utils import get_db
-from core.db import SQLALCHEMY_DATABASE_URL
+import pytest_asyncio
+from asgi_lifespan import LifespanManager
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from menu.core.config import SQLALCHEMY_DATABASE_TEST_URL
+from menu.db.models import Base
 from main import app
 
+test_engine = create_async_engine(
+    SQLALCHEMY_DATABASE_TEST_URL,
+)
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-database_exists = database_exists(engine.url)
-if not database_exists:
-    create_database(engine.url)
-
-
-def override_get_db(request:Request):
-    return request.state.db
+session = sessionmaker(
+    test_engine, class_=AsyncSession, expire_on_commit=False,
+)
 
 
-@pytest.fixture(scope="class")
-def test_db():
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
+@pytest.fixture(scope='session')
+def event_loop() -> Generator:
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
-app.dependency_overrides[get_db] = override_get_db
+@pytest_asyncio.fixture
+async def async_client() -> AsyncClient:
+    async with LifespanManager(app):
+        async with AsyncClient(app=app, base_url='http://test') as client:
+            yield client
 
 
-@pytest.fixture(scope="class")
-def test_client():
-    with TestClient(app) as client:
-        yield client
+@pytest_asyncio.fixture(scope='session')
+async def async_session(a_session=session) -> AsyncSession:
+
+    async with a_session() as s:
+        async with test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+    await test_engine.dispose()

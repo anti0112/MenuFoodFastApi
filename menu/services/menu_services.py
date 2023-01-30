@@ -1,55 +1,90 @@
-import json
-from menu.dao.menu_dao import MenuDAO
-from menu.schemas.menu_schema import MenuOut, MenuCreate, MenuUpdate
-from menu.models import Menu
 from fastapi import HTTPException
-from typing import List
 
-class MenuService:
-    def __init__(self, dao: MenuDAO):
-        self.dao = dao
+from menu.db.models import Menu
+from menu.services import ServiceMixin
 
-    def get_menu(self, id: int) -> MenuOut:
-        menu = self.dao.get(id)
-        if menu is None:
+
+class MenuService(ServiceMixin):
+    async def get_detail(self, menu_id: int):
+        cached_menu = await self.redis_cache.get_data(f"menu:{menu_id}")
+
+        if cached_menu:
+            return cached_menu
+
+        menu = await self.dao.menu_info(menu_id=menu_id)
+
+        if not menu:
             raise HTTPException(status_code=404, detail="menu not found")
-        return self.schema_menu_out(menu)
 
-    def get_all_menus(self) -> List[MenuOut]:
-        menus = self.dao.get_all()
-        return self.schema_menus_out(menus)
+        response_data = self.calculate_menu_submenus_and_dishes(menu)
+        await self.redis_cache.save(f"menu:{menu_id}", response_data)
 
-    def create_menu(self, menu: MenuCreate) -> MenuOut:
-        db_menu = self.dao.create(menu)
-        return self.schema_menu_out(db_menu)
+        return response_data
 
-    def update_menu(self, id: int, changes: MenuUpdate) -> MenuOut:
-        db_menu = self.dao.update(id, changes)
-        if db_menu is None:
-            raise HTTPException(status_code=404)
-        return self.schema_menu_out(db_menu)
+    async def get_list(self):
+        cached_menus = await self.redis_cache.get_data("menus")
 
-    def delete_menu(self, id: int) -> MenuOut:
-        menu = self.dao.get(id)
-        if menu is None:
-            raise HTTPException(status_code=404)
-        self.dao.delete(menu)
-        return {"status": 'true', "message": "The menu has been deleted"}
+        if cached_menus:
+            # if list of menus cached
+            return cached_menus
 
-    def schema_menu_out(self, menu: Menu) -> MenuOut:
-        return MenuOut(
-            id=str(menu.id),
-            title=menu.title,
-            description=menu.description,
-            submenus_count=len(menu.submenus),
-            dishes_count=sum(len(submenu.dishes) for submenu in menu.submenus)
-        )
+        menus = await self.dao.get_all_menus()
 
-    def schema_menus_out(self, menus: List[Menu]) -> List[MenuOut]:
-        return [MenuOut(
-            id=str(menu.id),
-            title=menu.title,
-            description=menu.description,
-            submenus_count=len(menu.submenus),
-            dishes_count=sum(len(submenu.dishes) for submenu in menu.submenus))
-            for menu in menus]
+        result_menu = list()
+
+        for menu in menus:
+            submenus_count = len(menu.sub_menus)
+            dishes_count = sum(len(submenu.dishes)
+                               for submenu in menu.sub_menus)
+
+            menu.submenus_count = submenus_count
+            menu.dishes_count = dishes_count
+
+            result_menu.append(menu)
+
+        await self.redis_cache.save("menus", result_menu)
+
+        return result_menu
+
+    async def create(self, title: str, description: str):
+        menu = await self.dao.create_menu(title=title, desc=description)
+
+        menu_data = self.calculate_menu_submenus_and_dishes(menu)
+        await self.redis_cache.clear("menus")
+
+        return menu_data
+
+    async def update(self, menu_id: int, **kwargs):
+        menu = await self.dao.menu_info(menu_id=menu_id)
+
+        if not menu:
+            raise HTTPException(status_code=404, detail="menu not found")
+
+        menu = await self.dao.update_menu(menu_id, **kwargs)
+
+        updated_menu = self.calculate_menu_submenus_and_dishes(menu)
+        await self.redis_cache.save(f"menu:{menu.id}", updated_menu)
+        await self.redis_cache.clear("menus")
+
+        return updated_menu
+
+    async def delete(self, menu_id: int):
+        menu = await self.dao.menu_info(menu_id=menu_id)
+
+        if not menu:
+            raise HTTPException(status_code=404, detail="menu not found")
+
+        await self.dao.delete_menu(menu_id=menu_id)
+        await self.redis_cache.clear(f"menu:{menu.id}", "menus")
+
+        return True
+
+    @staticmethod
+    def calculate_menu_submenus_and_dishes(menu: Menu):
+        submenus_count = len(menu.sub_menus)
+        dishes_count = sum(len(submenu.dishes) for submenu in menu.sub_menus)
+
+        menu.submenus_count = submenus_count
+        menu.dishes_count = dishes_count
+
+        return menu

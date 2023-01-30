@@ -1,63 +1,71 @@
-from menu.dao.dish_dao import DishDAO
-from menu.schemas.dish_schema import DishOut, DishCreate, DishUpdate
-from menu.models import Dish
 from fastapi import HTTPException
-from menu.services.menu_services import MenuService
-from menu.services.submenu_services import SubmenuService
-from typing import List
+
+from menu.services import ServiceMixin
 
 
-class DishService:
-    def __init__(self, dao: DishDAO, menu_service: MenuService, submenu_service: SubmenuService):
-        self.dao = dao
-        self.menu_service = menu_service
-        self.submenu_service = submenu_service
+class DishesService(ServiceMixin):
+    async def get_detail(self, dish_id: int):
+        cached_dish = await self.redis_cache.get_data(f"dish:{dish_id}")
 
-    def get_dish(self, id: int, submenu_id: int) -> DishOut:
-        dish = self.dao.get(id, submenu_id)
-        if dish is None:
+        if cached_dish:
+            return cached_dish
+
+        dish = await self.dao.dish_info(dish_id)
+
+        if not dish:
             raise HTTPException(status_code=404, detail="dish not found")
-        return self.schema_dish_out(dish)
 
-    def get_all_dishes(self, submenu_id: int) -> List[DishOut]:
-        dishes = self.dao.get_all(submenu_id)
-        if dishes is None:
-            return []
-        return self.schema_dishes_out(dishes)
+        await self.redis_cache.save(f"dish:{dish_id}", dish)
 
-    def create_dish(self, dish: DishCreate, menu_id: int, submenu_id: int) -> DishOut:
-        menu = self.menu_service.get_menu(menu_id)
-        if not menu:
-            raise HTTPException(status_code=400, detail="menu not found")
-        submenu = self.submenu_service.get_submenu(submenu_id)
+        return dish
+
+    async def get_list(self):
+        cached_dishes = await self.redis_cache.get_data("dishes")
+
+        if cached_dishes:
+            return cached_dishes
+
+        dishes = await self.dao.get_all_dishes()
+        await self.redis_cache.save("dishes", dishes)
+
+        return dishes
+
+    async def create(self, submenu_id: int, title: str, description: str, price: float):
+        submenu = await self.main_dao.submenu.submenu_info(submenu_id=submenu_id)
+
         if not submenu:
-            raise HTTPException(status_code=400, detail="submenu not found")
-        db_dish = self.dao.create(dish, submenu_id)
-        return self.schema_dish_out(db_dish)
+            raise HTTPException(status_code=404, detail="submenu not found")
 
-    def update_dish(self, id: int, submenu_id: int, changes: DishUpdate) -> DishOut:
-        db_dish = self.dao.update(id, submenu_id, changes)
-        if db_dish is None:
-            raise HTTPException(status_code=404)
-        return self.schema_dish_out(db_dish)
+        dish = await self.dao.create_dish(submenu_id=submenu_id, title=title, desc=description, price=price)
+        await self.redis_cache.clear()
 
-    def delete_dish(self, id: int, submenu_id: int) -> DishOut:
-        dish = self.dao.get(id, submenu_id)
-        if dish is None:
-            raise HTTPException(status_code=404)
-        self.dao.delete(dish)
-        return {"status": 'true', "message": "The dish has been deleted"}
+        return dish
 
-    def schema_dish_out(self, dish: Dish) -> DishOut:
-        return DishOut(
-            id=str(dish.id),
-            title=dish.title,
-            description=dish.description,
-            price=str(dish.price))
+    async def update(self, dish_id: int, **kwargs):
+        dish = await self.main_dao.dish.dish_info(dish_id)
 
-    def schema_dishes_out(self, dishes: List[Dish]) -> List[DishOut]:
-        return [DishOut(
-            id=str(dish.id),
-            title=dish.title,
-            description=dish.description,
-            price=str(dish.price)) for dish in dishes]
+        if not dish:
+            raise HTTPException(status_code=404, detail="dish not found")
+
+        price: float = kwargs.get("price")
+
+        if price:
+            kwargs["price"] = round(price, 2)
+
+        dish = await self.dao.update_dish(dish_id, **kwargs)
+
+        await self.redis_cache.save(f"dish:{dish.id}", dish)
+        await self.redis_cache.clear("dishes")
+
+        return dish
+
+    async def delete(self, dish_id: int):
+        dish = await self.dao.dish_info(dish_id=dish_id)
+
+        if not dish:
+            raise HTTPException(status_code=404, detail="dish not found")
+
+        await self.dao.delete_dish(dish_id)
+        await self.redis_cache.clear()
+
+        return True
