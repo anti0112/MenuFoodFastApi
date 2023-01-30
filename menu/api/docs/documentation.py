@@ -1,4 +1,4 @@
-class MenuApiDocs:
+class MenuDocs:
     GET_DETAIL = "Get detailed information about menu"
     GET_LIST = "Get list of menus"
     POST_CREATE = "Create new menu"
@@ -6,7 +6,7 @@ class MenuApiDocs:
     DELETE = "Delete an existing menu, submenus and dishes linked to this menu"
 
 
-class SubMenuApiDocs:
+class SubmenuDocs:
     GET_DETAIL = "Get detailed information about submenu"
     GET_LIST = "Get list of submenus for an existing menu"
     POST_CREATE = "Create new submenu"
@@ -14,7 +14,7 @@ class SubMenuApiDocs:
     DELETE = "Delete an existing submenu and linked dishes"
 
 
-class DishApiDocs:
+class DishDocs:
     GET_DETAIL = "Get detailed information about dish"
     GET_LIST = "Get list of all dishes"
     POST_CREATE = "Create new dish"
