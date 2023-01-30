@@ -1,8 +1,10 @@
 from .menu_schema import BaseMenu, MenuIn
 
+
 class DishOut(BaseMenu):
     price: str
- 
+
+
 class DishIn(MenuIn):
     price: float
 

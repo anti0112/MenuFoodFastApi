@@ -36,7 +36,7 @@ async def async_client() -> AsyncClient:
 @pytest_asyncio.fixture(scope='session')
 async def async_session(a_session=session) -> AsyncSession:
 
-    async with a_session() as s:
+    async with a_session():
         async with test_engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 

@@ -16,6 +16,7 @@ class MenuOut(BaseMenu):
     submenus_count: int
     dishes_count: int
 
+
 class MenuIn(BaseModel):
     title: str
     description: str
