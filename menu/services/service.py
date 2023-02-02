@@ -13,11 +13,7 @@ from menu.services.submenu_services import SubmenuService
 
 
 def service_stub():
-    """
-    Just DI for overwrite getting service
-
-    :return: Nothing
-    """
+    """Connection for Depends from main.py"""
     raise NotImplementedError
 
 

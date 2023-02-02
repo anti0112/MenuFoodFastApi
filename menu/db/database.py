@@ -5,7 +5,7 @@ from menu.dao.dao import DishDAO, MenuDAO, Dao, SubmenuDAO
 
 
 def dao_stub():
-    """ Yes, really """
+    """Connection for Depends from main.py"""
     raise NotImplementedError
 
 

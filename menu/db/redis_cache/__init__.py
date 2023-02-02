@@ -1,6 +1,7 @@
 import aioredis
 
 def redis_stub():
+    """Connection for Depends from main.py"""
     raise NotImplementedError
 
 
