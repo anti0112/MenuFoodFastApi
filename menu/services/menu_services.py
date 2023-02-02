@@ -10,13 +10,13 @@ class MenuService(ServiceMixin):
 
         if cached_menu:
             return cached_menu
-
+        
         menu = await self.dao.menu_info(menu_id=menu_id)
 
         if not menu:
             raise HTTPException(status_code=404, detail="menu not found")
 
-        response_data = self.calculate_menu_submenus_and_dishes(menu)
+        response_data = self.calculate_menu(menu)
         await self.redis_cache.save(f"menu:{menu_id}", response_data)
 
         return response_data
@@ -25,9 +25,8 @@ class MenuService(ServiceMixin):
         cached_menus = await self.redis_cache.get_data("menus")
 
         if cached_menus:
-            # if list of menus cached
             return cached_menus
-
+        
         menus = await self.dao.get_all_menus()
 
         result_menu = list()
@@ -49,7 +48,7 @@ class MenuService(ServiceMixin):
     async def create(self, title: str, description: str):
         menu = await self.dao.create_menu(title=title, desc=description)
 
-        menu_data = self.calculate_menu_submenus_and_dishes(menu)
+        menu_data = self.calculate_menu(menu)
         await self.redis_cache.clear("menus")
 
         return menu_data
@@ -62,7 +61,7 @@ class MenuService(ServiceMixin):
 
         menu = await self.dao.update_menu(menu_id, **kwargs)
 
-        updated_menu = self.calculate_menu_submenus_and_dishes(menu)
+        updated_menu = self.calculate_menu(menu)
         await self.redis_cache.save(f"menu:{menu.id}", updated_menu)
         await self.redis_cache.clear("menus")
 
@@ -80,7 +79,7 @@ class MenuService(ServiceMixin):
         return True
 
     @staticmethod
-    def calculate_menu_submenus_and_dishes(menu: Menu):
+    def calculate_menu(menu: Menu):
         submenus_count = len(menu.sub_menus)
         dishes_count = sum(len(submenu.dishes) for submenu in menu.sub_menus)
 

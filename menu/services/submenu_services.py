@@ -10,13 +10,13 @@ class SubmenuService(ServiceMixin):
 
         if cached_submenu:
             return cached_submenu
-
+        
         submenu = await self.dao.submenu_info(submenu_id=submenu_id)
 
         if not submenu:
             raise HTTPException(status_code=404, detail="submenu not found")
 
-        response_data = self.calculate_count_dishes(submenu)
+        response_data = self.calculate_dishes(submenu)
         await self.redis_cache.save(f"submenu:{submenu_id}", response_data)
 
         return response_data
@@ -32,7 +32,7 @@ class SubmenuService(ServiceMixin):
         if not menu:
             raise HTTPException(status_code=404, detail="menu not found")
 
-        submenus = self.calculate_count_dishes_list(menu.sub_menus)
+        submenus = self.calculate_submenus(menu.sub_menus)
         await self.redis_cache.save(f"submenus:{menu_id}", submenus)
 
         return submenus
@@ -42,7 +42,7 @@ class SubmenuService(ServiceMixin):
 
         await self.redis_cache.clear()
 
-        return self.calculate_count_dishes(submenu)
+        return self.calculate_dishes(submenu)
 
     async def update(self, submenu_id: int, **kwargs):
         submenu = await self.dao.submenu_info(submenu_id=submenu_id)
@@ -52,7 +52,7 @@ class SubmenuService(ServiceMixin):
 
         submenu = await self.dao.update_submenu(submenu_id, **kwargs)
 
-        updated_submenu = self.calculate_count_dishes(submenu)
+        updated_submenu = self.calculate_dishes(submenu)
         await self.redis_cache.save(f"submenu:{submenu.id}", updated_submenu)
         await self.redis_cache.clear(f"submenus:{submenu.menu_id}")
 
@@ -70,7 +70,7 @@ class SubmenuService(ServiceMixin):
         return True
 
     @staticmethod
-    def calculate_count_dishes(submenu: Submenu):
+    def calculate_dishes(submenu: Submenu):
         dishes_count = len(submenu.dishes)
 
         submenu.dishes_count = dishes_count
@@ -78,7 +78,7 @@ class SubmenuService(ServiceMixin):
         return submenu
 
     @staticmethod
-    def calculate_count_dishes_list(submenus: list[Submenu]):
+    def calculate_submenus(submenus: list[Submenu]):
         result_list = list()
 
         for submenu in submenus:
