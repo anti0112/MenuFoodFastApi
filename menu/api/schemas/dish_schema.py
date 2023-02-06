@@ -13,6 +13,6 @@ class DishIn(MenuIn):
             "example": {
                 "title": "My title",
                 "description": "My description",
-                "price": 10.00
+                "price": 10.00,
             }
         }

@@ -1,6 +1,7 @@
 import math
-import pytest_asyncio
+
 import pytest
+import pytest_asyncio
 
 
 @pytest.mark.asyncio
@@ -10,18 +11,18 @@ class TestDishes:
         base_url = "/api/v1/menus/"
         new_menu = {
             "title": "My menu 1",
-            "description": "My menu description 1"
+            "description": "My menu description 1",
         }
         response = await async_client.post(base_url, json=new_menu)
-        menu_id = response.json()['id']
+        menu_id = response.json()["id"]
 
         url = f"/api/v1/menus/{menu_id}/submenus/"
         new_submenu = {
             "title": "My dish 1",
-            "description": "My dish description 1"
+            "description": "My dish description 1",
         }
         response = await async_client.post(url, json=new_submenu)
-        submenu_id = response.json()['id']
+        submenu_id = response.json()["id"]
 
         return f"/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/"
 
@@ -35,7 +36,7 @@ class TestDishes:
         new_dish = {
             "title": "My dish 1",
             "description": "My dish description 1",
-            "price": 12.50
+            "price": 12.50,
         }
         response = await async_client.post(base_url, json=new_dish)
 
@@ -44,23 +45,24 @@ class TestDishes:
         expected_answer = {
             "title": "My dish 1",
             "description": "My dish description 1",
-            "price": 12.50
+            "price": 12.50,
         }
         response_dict = response.json()
         assert expected_answer["title"] == response_dict["title"]
         assert expected_answer["description"] == response_dict["description"]
         assert math.isclose(
-            expected_answer["price"], float(response_dict["price"]))
+            expected_answer["price"], float(response_dict["price"])
+        )
 
     async def test_detailed_dish(self, async_client, base_url):
         new_dish = {
             "title": "My dish 1",
             "description": "My dish description 1",
-            "price": 12.50
+            "price": 12.50,
         }
         response = await async_client.post(base_url, json=new_dish)
 
-        id = response.json()['id']
+        id = response.json()["id"]
         url = base_url + id
 
         response = await async_client.get(url)
@@ -79,31 +81,31 @@ class TestDishes:
         new_dish = {
             "title": "My dish 1",
             "description": "My dish description 1",
-            "price": 12.50
+            "price": 12.50,
         }
         response = await async_client.post(base_url, json=new_dish)
 
-        id = response.json()['id']
-        url = base_url + (id + '1')
+        id = response.json()["id"]
+        url = base_url + (id + "1")
 
         response = await async_client.get(url)
         assert response.status_code == 404
-        
+
     async def test_patch_dish(self, async_client, base_url):
         new_dish = {
             "title": "My dish 1",
             "description": "My dish description 1",
-            "price": 12.50
+            "price": 12.50,
         }
         response_post = await async_client.post(base_url, json=new_dish)
 
-        id = response_post.json()['id']
+        id = response_post.json()["id"]
 
         url = base_url + id
         updated_dish = {
             "title": "updated My dish 1",
             "description": "updated My dish description 1",
-            'price': 12.50
+            "price": 12.50,
         }
         response = await async_client.patch(url, json=updated_dish)
         expected_answer = {
@@ -121,17 +123,17 @@ class TestDishes:
         new_dish = {
             "title": "My dish 1",
             "description": "My dish description 1",
-            "price": 12.50
+            "price": 12.50,
         }
         response_post = await async_client.post(base_url, json=new_dish)
 
-        id = response_post.json()['id']
-        url = base_url + (id + '1')
+        id = response_post.json()["id"]
+        url = base_url + (id + "1")
 
         updated_dish = {
             "title": "updated My dish 1",
             "description": "updated My dish description 1",
-            'price': 12.50
+            "price": 12.50,
         }
         response = await async_client.patch(url, json=updated_dish)
         assert response.status_code == 404
@@ -140,17 +142,17 @@ class TestDishes:
         new_dish = {
             "title": "My dish 1",
             "description": "My dish description 1",
-            "price": 12.50
+            "price": 12.50,
         }
         response = await async_client.post(base_url, json=new_dish)
 
-        last_uuid = response.json()['id']
+        last_uuid = response.json()["id"]
         url = base_url + last_uuid
 
         response = await async_client.delete(url)
         expected_answer = {
-            'status': True,
-            'message': 'The dish has been deleted'
+            "status": True,
+            "message": "The dish has been deleted",
         }
         assert response.status_code == 200
         assert expected_answer == response.json()
@@ -159,14 +161,12 @@ class TestDishes:
         new_dish = {
             "title": "My dish 1",
             "description": "My dish description 1",
-            "price": 12.50
+            "price": 12.50,
         }
         response = await async_client.post(base_url, json=new_dish)
 
-        id = response.json()['id']
-        url = base_url + (id + '1')
+        id = response.json()["id"]
+        url = base_url + (id + "1")
 
         response = await async_client.delete(url)
         assert response.status_code == 404
-
-    

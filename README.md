@@ -20,9 +20,22 @@ docker-compose -f docker-compose.yml up -d
 ```
 docker-compose -f docker-compose.test.yml up -d
 ```
-#### 4. Проверка pre-commit
+___
+#### Для наполнения базы данных отправьте `POST` запрос по этому адресу
 ```
-pre-commit run --all-files
+http://127.0.0.1:8000/api/v1/stuff_db
+```
+#### Что-бы создать задачу отправьте `POST` запрос по этому адресу вернет task_id 
+```
+http://127.0.0.1:8000/api/v1/create/xlsx`
+```
+#### Ссылку на файл можно получить отправив `GET` запрос с указанием пришедшего task_id на этот адрес
+```
+http://127.0.0.1:8000/api/v1/create/xlsx/{task_id}`
+```
+#### Файл можно достать из контейнера в локальную папку `task_data` командой
+```
+`docker cp celery:app_menu/task_data/ ./`
 ```
 ___
 

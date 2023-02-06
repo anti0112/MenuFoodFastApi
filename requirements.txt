@@ -12,4 +12,6 @@ aioredis==2.0.1
 sqlalchemy_utils==0.39.0
 pre-commit==3.0.1
 pytest_asyncio==0.20.3
-asgi-lifespan==2.0.0
+celery==5.2.7
+kombu==5.2.4
+XlsxWriter==3.0.8

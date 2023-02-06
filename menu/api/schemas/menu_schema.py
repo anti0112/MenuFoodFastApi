@@ -23,8 +23,5 @@ class MenuIn(BaseModel):
 
     class Config:
         schema_extra = {
-            "example": {
-                "title": "My title",
-                "description": "My description"
-            }
+            "example": {"title": "My title", "description": "My description"}
         }

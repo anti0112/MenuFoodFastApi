@@ -1,12 +1,7 @@
-from menu.dao.dao import RedisDAO, MenuDAO, SubmenuDAO, DishDAO, Dao
+from menu.dao.dao import Dao, DishDAO, MenuDAO, RedisDAO, SubmenuDAO
+
 
 class ServiceMixin:
-    def __init__(
-            self,
-            dao: MenuDAO | SubmenuDAO | DishDAO,
-            main_dao: Dao | None = None,
-            redis: RedisDAO | None = None
-    ):
+    def __init__(self, dao: Dao, redis: RedisDAO):
         self.dao = dao
-        self.main_dao = main_dao
         self.redis_cache = redis

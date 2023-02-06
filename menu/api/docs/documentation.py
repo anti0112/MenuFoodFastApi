@@ -1,22 +1,31 @@
 class MenuDocs:
-    GET_DETAIL = "Get detailed information about menu"
-    GET_LIST = "Get list of menus"
-    POST_CREATE = "Create new menu"
-    PATCH_UPDATE = "Update an existing menu"
-    DELETE = "Delete an existing menu, submenus and dishes linked to this menu"
+    GET_DETAIL = "Получить меню"
+    GET_LIST = "Получить все меню"
+    POST_CREATE = "Создать новое меню"
+    PATCH_UPDATE = "Обновить меню"
+    DELETE = "Удалить меню, и связанные с ним подменю и блюда"
 
 
 class SubmenuDocs:
-    GET_DETAIL = "Get detailed information about submenu"
-    GET_LIST = "Get list of submenus for an existing menu"
-    POST_CREATE = "Create new submenu"
-    PATCH_UPDATE = "Update an existing submenu"
-    DELETE = "Delete an existing submenu and linked dishes"
+    GET_DETAIL = "Получить подменю"
+    GET_LIST = "Получить все подменю определенного меню"
+    POST_CREATE = "Создать подменю"
+    PATCH_UPDATE = "Обновить подменю"
+    DELETE = "Удалить подменю и блюда связанные с ним"
 
 
 class DishDocs:
-    GET_DETAIL = "Get detailed information about dish"
-    GET_LIST = "Get list of all dishes"
-    POST_CREATE = "Create new dish"
-    PATCH_UPDATE = "Update an existing dish"
-    DELETE = "Delete an existing dish"
+    GET_DETAIL = "Получить блюдо"
+    GET_LIST = "Получить все блюда"
+    POST_CREATE = "Создать блюдо"
+    PATCH_UPDATE = "Обновить блюдо"
+    DELETE = "Удалить блюдо"
+
+
+class StuffDocs:
+    POST_STUFF = "Заполнить базу тестовыми данными"
+
+
+class CreateXLSLDocs:
+    POST_XLSX = "Создать задачу создания xlsx файла"
+    GET_XLSX = "Получить информацию о задаче"

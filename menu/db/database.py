@@ -1,11 +1,12 @@
-import typing
-from starlette.requests import Request
+from collections.abc import AsyncGenerator
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from menu.dao.dao import DishDAO, MenuDAO, Dao, SubmenuDAO
+from starlette.requests import Request
+
+from menu.dao.dao import Dao, DishDAO, TakeDbDAO, MenuDAO, SubmenuDAO
 
 
 def dao_stub():
-    """Connection for Depends from main.py"""
     raise NotImplementedError
 
 
@@ -13,11 +14,11 @@ class DBProvider:
     def __init__(self, pool):
         self.pool = pool
 
-    async def get_dao(self) -> typing.Generator:
+    async def get_dao(self) -> AsyncGenerator:
         session: AsyncSession = self.pool()
 
         try:
-            dao = Dao(session, MenuDAO, SubmenuDAO, DishDAO)
+            dao = Dao(session, MenuDAO, SubmenuDAO, DishDAO, TakeDbDAO)
             yield dao
         finally:
             await session.close()

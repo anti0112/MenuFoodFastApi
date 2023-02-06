@@ -1,16 +1,16 @@
 from sqlalchemy import select
 
-from menu.db.models import Dish
 from menu.dao import SQLAlchemySession
+from menu.db.models import Dish
 
 
 class DishDAO(SQLAlchemySession):
-    async def _get_dish(self, dish_id: int) -> Dish | None:
+    async def _get_dish(self, dish_id: int) -> Dish:
         dish = await self.session.get(Dish, dish_id)
 
         return dish
 
-    async def dish_info(self, dish_id: int) -> Dish | None:
+    async def dish_info(self, dish_id: int) -> Dish:
         dish = await self._get_dish(dish_id)
 
         return dish
@@ -20,9 +20,15 @@ class DishDAO(SQLAlchemySession):
 
         return (await self.session.scalars(smtp)).all()
 
-    async def create_dish(self, submenu_id: int, title: str, desc: str, price: float):
-        dish = Dish(submenu_id=submenu_id, title=title,
-                    description=desc, price=round(price, 2))
+    async def create_dish(
+        self, submenu_id: int, title: str, desc: str, price: float
+    ):
+        dish = Dish(
+            submenu_id=submenu_id,
+            title=title,
+            description=desc,
+            price=round(price, 2),
+        )
 
         self.session.add(dish)
         await self.session.commit()

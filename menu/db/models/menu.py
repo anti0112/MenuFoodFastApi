@@ -10,5 +10,6 @@ class Menu(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String)
     description = Column(String)
-    sub_menus = relationship("Submenu", backref="menu",
-                             lazy="selectin", cascade="all, delete")
+    sub_menus = relationship(
+        "Submenu", backref="menu", lazy="selectin", cascade="all, delete"
+    )

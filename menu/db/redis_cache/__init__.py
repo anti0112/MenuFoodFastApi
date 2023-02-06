@@ -1,5 +1,6 @@
 import aioredis
 
+
 def redis_stub():
     """Connection for Depends from main.py"""
     raise NotImplementedError
@@ -8,7 +9,9 @@ def redis_stub():
 class RedisProvider:
     def __init__(self, url):
         self.pool = aioredis.ConnectionPool.from_url(url)
-        self.redis = aioredis.Redis(connection_pool=self.pool, decode_responses=True)
+        self.redis = aioredis.Redis(
+            connection_pool=self.pool, decode_responses=True
+        )
 
     def get_redis(self) -> aioredis.Redis:
         return self.redis

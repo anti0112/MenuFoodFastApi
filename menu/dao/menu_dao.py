@@ -1,16 +1,16 @@
 from sqlalchemy import select
 
-from menu.db.models import Menu
 from menu.dao import SQLAlchemySession
+from menu.db.models import Menu
 
 
 class MenuDAO(SQLAlchemySession):
-    async def _get_menu(self, menu_id: int) -> Menu | None:
+    async def _get_menu(self, menu_id: int) -> Menu:
         menu = await self.session.get(Menu, menu_id)
 
         return menu
 
-    async def menu_info(self, menu_id: int) -> Menu | None:
+    async def menu_info(self, menu_id: int) -> Menu:
         menu = await self._get_menu(menu_id)
 
         return menu
