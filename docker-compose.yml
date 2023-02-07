@@ -57,6 +57,7 @@ services:
 
   celery:
     build: .
+    container_name: celery
     entrypoint: >
       sh -c "
         celery -A menu.celery.celery_app worker -l info -Q celery -c 2
