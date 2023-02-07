@@ -1,8 +1,8 @@
 from sqlalchemy import func, select
 from sqlalchemy.engine import CursorResult
 
-from menu.db.models import Dish, Menu, Submenu
 from menu.dao import SQLAlchemySession
+from menu.db.models import Dish, Menu, Submenu
 
 
 class TakeDbDAO(SQLAlchemySession):

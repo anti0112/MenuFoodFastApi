@@ -35,7 +35,6 @@ async def create_task_and_xlsx(
 async def get_task_xlsx(
     task_id: str, services: Services = Depends(service_stub)
 ):
-
     task = services.tasks_service.get_task(task_id)
 
     return task

@@ -6,7 +6,7 @@ from menu.services.db_fill.db_models import Menus, Models
 
 class StuffDbService(ServiceMixin):
     DATA_PATH = "./test_data_menu.json"
-    
+
     async def create_stuff_db(self):
         menus: list[Menus] = self.read_db_data().__root__
 

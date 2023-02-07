@@ -1,4 +1,5 @@
 from celery import Celery
+
 from menu.core.config import C_BROKER_URL, C_RESULT_BACKEND
 
 
@@ -14,7 +15,7 @@ celery = Celery(
     __name__,
     include=["menu.celery.task"],
     backend=C_RESULT_BACKEND,
-    broker=C_BROKER_URL
+    broker=C_BROKER_URL,
 )
 
 

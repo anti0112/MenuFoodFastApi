@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
-from menu.dao.dao import Dao, DishDAO, TakeDbDAO, MenuDAO, SubmenuDAO
+from menu.dao.dao import Dao, DishDAO, MenuDAO, SubmenuDAO, TakeDbDAO
 
 
 def dao_stub():

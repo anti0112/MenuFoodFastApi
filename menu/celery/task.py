@@ -1,7 +1,11 @@
 import uuid
+
 import xlsxwriter
+
 from menu.services.db_fill.db_models import Menus
+
 from .celery_app import celery
+
 
 @celery.task(name="menu.create_task_xlsx:celery")
 def create_task_xlsx(menus_list: list[dict]):
